@@ -123,4 +123,4 @@ The final version of the project was stored on Maynooth University's GitLab, whi
 
 
 ## Author
-**Sriya Sambaturu** · [LinkedIn](www.linkedin.com/in/sriya-sambaturu-014b91302)
+**Sriya Sambaturu** · [LinkedIn](https://www.linkedin.com/in/sriya-sambaturu-014b91302)
