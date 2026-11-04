@@ -1,92 +1,106 @@
-# Data Structure Garden 🌱
+Data Structure Garden 🌱
 
-A 3D learning game prototype, built in Unity with C#, that teaches various data structures and algorithms through different areas of a garden. Students learn by walking through the garden and making choices, not by reading diagrams.
+A 3D learning game, built in Unity with C#, that teaches various data structures and algorithms through different areas of a garden. Instead of reading diagrams, students walk through the garden and solve challenges, getting instant feedback on every decision.
 
-*Final year project: BSc Computer Science and Software Engineering, Maynooth University (2026)*
+Final year project: BSc Computer Science and Software Engineering, Maynooth University (2026)
 
-## The idea
+The garden, with the binary tree, pond and vegetable patch
 
-Students usually learn binary search trees from diagrams on a page. The rule ("smaller goes left, bigger goes right") sounds simple, but it's easy to memorise without really understanding it. Data Structure Garden turns that rule into a choice you make with your feet: you're given a value, you walk into the garden, and you pick the left or right path depending on how your value compares with the one at the root.
+Why I built it
 
-## The garden
+Data structures are a core part of any computer science degree, but they're abstract: students usually meet them as static diagrams and pseudocode, which show the result of an operation but not the steps that lead to it. Research on algorithm visualisation and game-based learning suggests that students understand better when they actively interact with a concept. Data Structure Garden turns each data structure into a place you can walk into and a challenge you can play.
 
-| Area | Teaches | Status |
-|------|---------|--------|
-| 🌳 **Binary Tree** | Binary search tree insertion | Playable: code in this repository |
-| 🦆 **Queue Pond** | Queues (first in, first out) | Built in a later version that isn't in this repository |
-| 🥕 **Vegetable Patch** | Sorting algorithms | Designed and laid out, not finished |
+The garden
+Area	Teaches	Status
+🌳 Binary Tree	Binary search tree insertion	Complete
+🦆 Queue Pond	Queues: enqueue, dequeue, first in first out	Complete
+🥕 Vegetable Patch	Insertion sort	Environment built; activity planned
+🌳 Binary Tree
 
-## How the Binary Tree challenge plays
+Walk up to the tree and press E to open the tutorial, then pick Easy or Hard. You're given a value to insert, and at each node you walk into the left or right path depending on whether your value is smaller or larger. The challenge continues step by step until you reach the correct insertion point. Wrong choices get an explanation so you can try again.
 
-1. Walk around the garden with the **arrow keys / WASD**.
-2. Walk up to the tree and press **E** to start the Binary Tree Challenge.
-3. You're shown the value to insert (e.g. **6**) and the root value (e.g. **8**).
-4. Walk into the **left** or **right** path zone to make your choice.
-5. The game tells you if you're right. If you're wrong, try the other path.
+Binary Search Tree tutorial screen
 
-## How it's built
+🦆 Queue Pond
 
-The project is split into small, single-purpose C# components that talk to each other through Unity's trigger events:
+The pond shows a queue of values. Each round, the game asks you to perform an enqueue or a dequeue, and you choose whether it happens at the front or the rear of the queue. Correct answers update the queue on screen; wrong answers get feedback explaining first in, first out (FIFO).
 
-```mermaid
-classDiagram
-    class KeyboardMove {
-        +float speed
-        Update() moves the player
-    }
-    class InteractTrigger {
-        +BinaryTree game
-        OnTriggerEnter() shows the prompt
-        Update() press E to start
-    }
-    class ChoiceZone {
-        +BinaryTree game
-        +bool isLeft
-        OnTriggerEnter() submits left or right
-    }
-    class BinaryTree {
-        +int rootValue
-        +int insertValue
-        +bool gameActive
-        StartChallenge()
-        ChooseLeft()
-        ChooseRight()
-    }
-    InteractTrigger --> BinaryTree : starts challenge
-    ChoiceZone --> BinaryTree : sends player's choice
-```
+Queue Pond tutorial screen
 
-| Script | What it does |
-|--------|--------------|
-| `BinaryTree.cs` | Holds the challenge state and checks whether the player's choice follows the BST insertion rule |
-| `ChoiceZone.cs` | A trigger zone on each path; when the player walks in, it submits "left" or "right" |
-| `InteractTrigger.cs` | Shows the start prompt near the tree and starts the challenge when the player presses E |
-| `KeyboardMove.cs` | Simple keyboard movement for the player |
+How it's built
+Player inputmovement + E key
+Trigger zonesUnity colliders
+Binary Tree logic
+Queue Pond logic
+UI: instructions,difficulty + feedback
+Modular, event-driven design. Each learning area is controlled by its own C# scripts, so activities run independently and new areas can be added without changing existing ones. Unity trigger colliders start each activity when the player walks in.
+Logic separate from the interface. The data structure logic doesn't depend on the UI, which kept the code easier to change during development.
+Designed before building. The design is documented with UML use case and class diagrams in the project report.
+Code highlights
 
-**Design choices**
+Recursive binary search tree insertion:
 
-- **Game logic is kept separate from the scene.** All the rules live in `BinaryTree`; the zones only report what the player did. That makes it easy to change values or add more levels without touching the trigger code.
-- **One reusable script for both paths.** A single `ChoiceZone` component handles left and right with one setting (`isLeft`), so there's no duplicated code.
-- **Values are set in the Unity Inspector**, so new challenges can be created without changing any code.
+csharp
+private class BSTNode
+{
+    public int value;
+    public BSTNode left;
+    public BSTNode right;
 
-## Scope and what I learned
+    public BSTNode(int v) { value = v; }
+}
 
-The project started as a VR experience. Partway through, I re-scoped it to a desktop prototype so I could deliver a working, testable version on time. That was the most valuable lesson of the project: cutting scope to ship something that works, then building on it.
+private BSTNode InsertNode(BSTNode node, int value)
+{
+    if (node == null)
+        return new BSTNode(value);
 
-## What I'd build next
+    if (value < node.value)
+        node.left = InsertNode(node.left, value);
+    else if (value > node.value)
+        node.right = InsertNode(node.right, value);
 
-- Multi-level trees, so a value keeps travelling down until it finds its place
-- On-screen UI feedback instead of console messages
-- Random values for each round, plus a score
-- Finish the Vegetable Patch so students can sort vegetables step by step (e.g. by size)
-- Bring the Queue Pond back into this repository
-- More structures, such as stacks and linked lists, as new areas of the garden
-- Only allow the challenge to start when the player is standing near the tree
+    return node;
+}
 
-## Tech
+Checking the player's queue choice and updating the queue:
 
-**Unity** · **C#** · **Blender** (3D models) · **Git**
+csharp
+private void SubmitChoice(bool choseFront)
+{
+    if (currentOperation == QueueOperation.Dequeue && choseFront)
+        queueValues.RemoveAt(0);              // dequeue: remove from the front
+    else if (currentOperation == QueueOperation.Enqueue && !choseFront)
+        queueValues.Add(pendingValue);        // enqueue: add to the rear
+}
+Testing and evaluation
+Functional testing: I wrote test cases for every interaction (entering zones, choosing difficulty, correct and incorrect choices, repeated queue operations) and ran them repeatedly in Unity, using console logs and runtime inspection to check the values.
+User testing: two participants (one beginner, one with some prior knowledge) played both activities and rated the game on a usability questionnaire based on the System Usability Scale.
+Statement	Beginner	Some knowledge
+The environment made learning more engaging	5/5	5/5
+The system was easy to navigate	4/5	4/5
+The challenges helped me understand the data structures	4/5	4/5
+The instructions were clear	3/5	4/5
 
-## Author
+The main takeaway was that beginners need clearer first-time instructions, which is now first on the list of improvements below.
+
+What I learned
+Scoping to deliver. The project started as a VR experience; I moved it to a desktop build so I could deliver two complete, tested activities on time.
+Listening to users. Even a small user test showed something I'd missed: the instructions made sense to me, but not to a complete beginner.
+Unity and C#: colliders and triggers, UI canvases, organising game logic into reusable components, and debugging with Unity's tools.
+What I'd build next
+Finish the Vegetable Patch: sort vegetables by size, step by step, using insertion sort
+Clearer, step-by-step tutorials for complete beginners
+Animated visuals, such as the tree growing as values are inserted and frogs lining up in the pond queue
+More areas, such as stacks and graphs
+About this repository
+
+The final version of the project was stored on Maynooth University's GitLab, which I no longer have access to. This repository contains the early prototype scripts from my local copy (BinaryTree.cs, ChoiceZone.cs, InteractTrigger.cs, KeyboardMove.cs). The code highlights and screenshots above are from the final version.
+
+Tech
+
+Unity · C# · Blender and Sketchfab (3D models) · Git / GitLab · Microsoft Copilot (debugging support)
+
+Author
 
 **Sriya Sambaturu** · [LinkedIn](www.linkedin.com/in/sriya-sambaturu-014b91302)
